@@ -6,8 +6,11 @@ from matplotlib.font_manager import FontProperties
 import os
 import sys
 
-if not os.path.exists('animelist.json'):
-    animelist = json.loads(requests.get('https://api.bilibili.com/pgc/season/index/result?season_month=1&year=%5B2020,2021)&page=1&season_type=1&pagesize=50&type=1').text)['data']['list']
+year = 2020
+season = 1
+
+if not os.path.exists('animelist'+str(year)+'s'+str(season)+'.json'):
+    animelist = json.loads(requests.get('https://api.bilibili.com/pgc/season/index/result?season_month='+str((season-1)*3+1)+'&year=['+str(year)+','+str(year+1)+')&page=1&season_type=1&pagesize=50&type=1').text)['data']['list']
 
     def getstyles(i):
         animeinfo = json.loads(requests.get('https://api.bilibili.com/pgc/view/web/media?media_id='+str(animelist[i]['media_id'])).text)
@@ -22,10 +25,10 @@ if not os.path.exists('animelist.json'):
     for i in threads:
         i.join()
 
-    with open('animelist.json','w') as a:
+    with open('animelist'+str(year)+'s'+str(season)+'.json','w') as a:
         json.dump(animelist,a)
 else:
-    with open('animelist.json','r') as a:
+    with open('animelist'+str(year)+'s'+str(season)+'.json','r') as a:
         animelist = json.loads(a.read())
 
 if os.path.exists('stylesoffset.json'):
@@ -86,4 +89,4 @@ for i in barh.get_axes()[0].get_xticklabels():
     i.set_fontproperties(font)
 for i in range(len(animelist)):
     plt.text(0,i,animelist[i]['title'],ha='center',va='center',FontProperties=font)
-plt.savefig('/sdcard/adm/animelist.png')
+plt.savefig('/sdcard/adm/animelist'+str(year)+'s'+str(season)+'.png')
