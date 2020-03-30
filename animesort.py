@@ -7,7 +7,8 @@ import os
 import sys
 
 year = 2020
-season = 1
+season = 2
+mainlandonly = False
 
 if not os.path.exists('animelist'+str(year)+'s'+str(season)+'.json'):
     animelist = json.loads(requests.get('https://api.bilibili.com/pgc/season/index/result?season_month='+str((season-1)*3+1)+'&year=['+str(year)+','+str(year+1)+')&page=1&season_type=1&pagesize=50&type=1').text)['data']['list']
@@ -43,6 +44,9 @@ else:
         i['offset'] = 0
     open('stylesoffset.json','w').write(json.dumps(styles,indent=4,ensure_ascii=False))
     sys.exit()
+
+if mainlandonly :
+    animelist = [i for i in animelist if '（僅限' not in i['title'] and i['title'][-3:] != '地區）']
 
 for i in animelist:
     i['offset'] = 0
