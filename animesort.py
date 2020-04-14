@@ -10,8 +10,11 @@ year = 2020
 season = 2
 mainlandonly = False
 
-if not os.path.exists('animelist'+str(year)+'s'+str(season)+'.json'):
-    animelist = json.loads(requests.get('https://api.bilibili.com/pgc/season/index/result?season_month='+str((season-1)*3+1)+'&year=['+str(year)+','+str(year+1)+')&page=1&season_type=1&pagesize=50&type=1').text)['data']['list']
+
+def getanimelist():
+    if 'animelist' not in globals():
+        global animelist
+        animelist = json.loads(requests.get('https://api.bilibili.com/pgc/season/index/result?season_month='+str((season-1)*3+1)+'&year=['+str(year)+','+str(year+1)+')&page=1&season_type=1&pagesize=50&type=1').text)['data']['list']
 
     def getstyles(i):
         animeinfo = json.loads(requests.get('https://api.bilibili.com/pgc/view/web/media?media_id='+str(animelist[i]['media_id'])).text)
@@ -28,9 +31,19 @@ if not os.path.exists('animelist'+str(year)+'s'+str(season)+'.json'):
 
     with open('animelist'+str(year)+'s'+str(season)+'.json','w') as a:
         json.dump(animelist,a)
+
+
+if not os.path.exists('animelist'+str(year)+'s'+str(season)+'.json'):
+    getanimelist()
 else:
     with open('animelist'+str(year)+'s'+str(season)+'.json','r') as a:
-        animelist = json.loads(a.read())
+        animelistold = json.loads(a.read())
+    animelist = json.loads(requests.get('https://api.bilibili.com/pgc/season/index/result?season_month='+str((season-1)*3+1)+'&year=['+str(year)+','+str(year+1)+')&page=1&season_type=1&pagesize=50&type=1').text)['data']['list']
+    if [x['media_id'] for x in animelist] != [x['media_id'] for x in animelistold]:
+        print('本地缓存与远程不一致，正在更新')
+        getanimelist()
+    else:
+        animelist = animelistold
 
 if os.path.exists('stylesoffset.json'):
     styles = json.load(open('stylesoffset.json','r'))
