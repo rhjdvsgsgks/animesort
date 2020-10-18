@@ -93,17 +93,17 @@ for i in styles:
         plt.barh([x['title'] for x in animelist],[emptyreturn0(a,i) for a in animelist],left=leftp)
         for j in range(len(animelist)):
             if int(i['keyword']) in [x['id'] for x in animelist[j]['styles']]:
-                plt.text(leftp[j]+i['offset'],j,i['name'],FontProperties=font,ha='right',va='center')
+                plt.text(leftp[j]+i['offset'],j,i['name'],fontproperties=font,ha='right',va='center')
         leftp = [leftp[j] + [emptyreturn0(a,i) for a in animelist][j] for j in range(len(animelist))]
     if i['offset'] < 0 and int(i['keyword']) in allstylesid:
         plt.barh([x['title'] for x in animelist],[emptyreturn0(a,i) for a in animelist],left=leftn)
         for j in range(len(animelist)):
             if int(i['keyword']) in [x['id'] for x in animelist[j]['styles']]:
-                plt.text(leftn[j]+i['offset'],j,i['name'],FontProperties=font,va='center')
+                plt.text(leftn[j]+i['offset'],j,i['name'],fontproperties=font,va='center')
         leftn = [leftn[j] + [emptyreturn0(a,i) for a in animelist][j] for j in range(len(animelist))]
 plt.tick_params(labelleft=False,left=False)
 for i in barh.get_axes()[0].get_xticklabels():
     i.set_fontproperties(font)
 for i in range(len(animelist)):
-    plt.text(0,i,animelist[i]['title'],ha='center',va='center',FontProperties=font)
+    plt.text(0,i,animelist[i]['title'],ha='center',va='center',fontproperties=font)
 plt.savefig('/sdcard/adm/animelist'+str(year)+'s'+str(season)+'.png')
