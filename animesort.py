@@ -6,9 +6,10 @@ from matplotlib.font_manager import FontProperties
 import os
 import sys
 
-year = 2020
-season = 4
+year = 2021
+season = 2
 mainlandonly = False
+mainlandexception = True
 
 
 def getanimelist():
@@ -60,6 +61,8 @@ else:
 
 if mainlandonly :
     animelist = [i for i in animelist if '（僅限' not in i['title'] and i['title'][-3:] != '地區）']
+if mainlandexception :
+    animelist = [i for i in animelist if '（僅限' in i['title'] and i['title'][-3:] == '地區）']
 
 for i in animelist:
     i['offset'] = 0
