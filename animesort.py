@@ -4,7 +4,8 @@ import threading
 import matplotlib.pyplot as plt
 from matplotlib.font_manager import FontProperties
 import os
-import sys
+from copy import deepcopy
+import difflib
 
 year = 2021
 season = 2
@@ -48,16 +49,28 @@ else:
 
 if os.path.exists('stylesoffset.json'):
     styles = json.load(open('stylesoffset.json','r'))
+    remotestyles = []
+    for i in [1,4]:
+        remotestyles = remotestyles+[y for y in [x for x in json.loads(requests.get('https://api.bilibili.com/pgc/season/index/condition?season_type='+str(i)+'&type=0').text)['data']['filter'] if x['field'] == 'style_id'][0]['values'] if y not in remotestyles]
+    remotestyles.sort(key=lambda z: z['keyword'])
+    rawstyles = deepcopy(styles)
+    for i in rawstyles:
+        i.pop('offset')
+    if remotestyles != rawstyles:
+        patch = difflib.unified_diff(json.dumps(rawstyles,indent=4,ensure_ascii=False).splitlines(keepends=True),json.dumps(remotestyles,indent=4,ensure_ascii=False).splitlines(keepends=True))
+        print('stylesoffset.json 需要更新，已保存到 .patch ，请同步更新并修改offset到自己满意的数值后再运行此脚本')
+        open('stylesoffset.json.patch','w').write(''.join(patch))
+        exit()
 else:
     print('未发现 stylesoffset.json ，已创建，请修改offset到自己满意的数值后再运行此脚本')
     styles = []
-    for i in range(1,5):
-        styles = styles+[y for y in [x for x in json.loads(requests.get('https://api.bilibili.com/pgc/season/index/condition?season_type='+str(i)+'&type=1').text)['data']['filter'] if x['field'] == 'style_id'][0]['values'] if y not in styles]
+    for i in [1,4]:
+        styles = styles+[y for y in [x for x in json.loads(requests.get('https://api.bilibili.com/pgc/season/index/condition?season_type='+str(i)+'&type=0').text)['data']['filter'] if x['field'] == 'style_id'][0]['values'] if y not in styles]
     styles.sort(key=lambda z: z['keyword'])
     for i in styles:
         i['offset'] = 0
     open('stylesoffset.json','w').write(json.dumps(styles,indent=4,ensure_ascii=False))
-    sys.exit()
+    exit()
 
 if mainlandonly :
     animelist = [i for i in animelist if '（僅限' not in i['title'] and i['title'][-3:] != '地區）']
