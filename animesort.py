@@ -11,12 +11,16 @@ year = 2021
 season = 2
 mainlandonly = False
 mainlandexception = True
+chineseanime = False
 
 
 def getanimelist():
     if 'animelist' not in globals():
         global animelist
-        animelist = json.loads(requests.get('https://api.bilibili.com/pgc/season/index/result?season_month='+str((season-1)*3+1)+'&year=['+str(year)+','+str(year+1)+')&page=1&season_type=1&pagesize=10000&type=1').text)['data']['list']
+        if not chineseanime:
+            animelist = json.loads(requests.get('https://api.bilibili.com/pgc/season/index/result?season_month='+str((season-1)*3+1)+'&year=['+str(year)+','+str(year+1)+')&season_type=1&pagesize=10000&type=1').text)['data']['list']
+        else:
+            animelist = json.loads(requests.get('https://api.bilibili.com/pgc/season/index/result?year=['+str(year)+','+str(year+1)+')&season_type=4&pagesize=10000&type=1').text)['data']['list']
 
     def getstyles(i):
         animeinfo = json.loads(requests.get('https://api.bilibili.com/pgc/view/web/media?media_id='+str(animelist[i]['media_id'])).text)
@@ -31,16 +35,19 @@ def getanimelist():
     for i in threads:
         i.join()
 
-    with open('animelist'+str(year)+'s'+str(season)+'.json','w') as a:
+    with open('animelist'+str(year)+('' if chineseanime else 's'+str(season))+('.zh' if chineseanime else '')+'.json','w') as a:
         json.dump(animelist,a)
 
 
-if not os.path.exists('animelist'+str(year)+'s'+str(season)+'.json'):
+if not os.path.exists('animelist'+str(year)+('' if chineseanime else 's'+str(season))+('.zh' if chineseanime else '')+'.json'):
     getanimelist()
 else:
-    with open('animelist'+str(year)+'s'+str(season)+'.json','r') as a:
+    with open('animelist'+str(year)+('' if chineseanime else 's'+str(season))+('.zh' if chineseanime else '')+'.json','r') as a:
         animelistold = json.loads(a.read())
-    animelist = json.loads(requests.get('https://api.bilibili.com/pgc/season/index/result?season_month='+str((season-1)*3+1)+'&year=['+str(year)+','+str(year+1)+')&page=1&season_type=1&pagesize=10000&type=1').text)['data']['list']
+    if not chineseanime:
+        animelist = json.loads(requests.get('https://api.bilibili.com/pgc/season/index/result?season_month='+str((season-1)*3+1)+'&year=['+str(year)+','+str(year+1)+')&season_type=1&pagesize=10000&type=1').text)['data']['list']
+    else:
+        animelist = json.loads(requests.get('https://api.bilibili.com/pgc/season/index/result?year=['+str(year)+','+str(year+1)+')&season_type=4&pagesize=10000&type=1').text)['data']['list']
     titlemid = [[x['title'],x['media_id']] for x in animelist]
     titlemidold = [[x['title'],x['media_id']] for x in animelistold]
     if titlemid != titlemidold:
@@ -54,8 +61,8 @@ else:
 if os.path.exists('stylesoffset.json'):
     styles = json.load(open('stylesoffset.json','r'))
     remotestyles = []
-    for i in [1,4]:
-        remotestyles = remotestyles+[y for y in [x for x in json.loads(requests.get('https://api.bilibili.com/pgc/season/index/condition?season_type='+str(i)+'&type=0').text)['data']['filter'] if x['field'] == 'style_id'][0]['values'] if y not in remotestyles]
+    for i in [1,2,4]:
+        remotestyles = remotestyles+[y for y in [x for x in json.loads(requests.get('https://api.bilibili.com/pgc/season/index/condition?season_type='+str(i)+'&type=1').text)['data']['filter'] if x['field'] == 'style_id'][0]['values'] if y not in remotestyles]
     remotestyles.sort(key=lambda z: z['keyword'])
     rawstyles = deepcopy(styles)
     for i in rawstyles:
@@ -68,8 +75,8 @@ if os.path.exists('stylesoffset.json'):
 else:
     print('未发现 stylesoffset.json ，已创建，请修改offset到自己满意的数值后再运行此脚本')
     styles = []
-    for i in [1,4]:
-        styles = styles+[y for y in [x for x in json.loads(requests.get('https://api.bilibili.com/pgc/season/index/condition?season_type='+str(i)+'&type=0').text)['data']['filter'] if x['field'] == 'style_id'][0]['values'] if y not in styles]
+    for i in [1,2,4]:
+        styles = styles+[y for y in [x for x in json.loads(requests.get('https://api.bilibili.com/pgc/season/index/condition?season_type='+str(i)+'&type=1').text)['data']['filter'] if x['field'] == 'style_id'][0]['values'] if y not in styles]
     styles.sort(key=lambda z: z['keyword'])
     for i in styles:
         i['offset'] = 0
@@ -126,4 +133,4 @@ for i in barh.get_axes()[0].get_xticklabels():
     i.set_fontproperties(font)
 for i in range(len(animelist)):
     plt.text(0,i,animelist[i]['title'],ha='center',va='center',fontproperties=font)
-plt.savefig('/sdcard/adm/animelist'+str(year)+'s'+str(season)+'.png')
+plt.savefig('/sdcard/adm/animelist'+str(year)+('' if chineseanime else 's'+str(season))+('.zh' if chineseanime else '')+'.png')
