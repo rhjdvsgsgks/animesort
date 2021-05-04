@@ -41,7 +41,11 @@ else:
     with open('animelist'+str(year)+'s'+str(season)+'.json','r') as a:
         animelistold = json.loads(a.read())
     animelist = json.loads(requests.get('https://api.bilibili.com/pgc/season/index/result?season_month='+str((season-1)*3+1)+'&year=['+str(year)+','+str(year+1)+')&page=1&season_type=1&pagesize=10000&type=1').text)['data']['list']
-    if [x['media_id'] for x in animelist] != [x['media_id'] for x in animelistold]:
+    titlemid = [[x['title'],x['media_id']] for x in animelist]
+    titlemidold = [[x['title'],x['media_id']] for x in animelistold]
+    if titlemid != titlemidold:
+        print('+ '+str([x for x in titlemid if x not in titlemidold]))
+        print('- '+str([x for x in titlemidold if x not in titlemid]))
         print('本地缓存与远程不一致，正在更新')
         getanimelist()
     else:
